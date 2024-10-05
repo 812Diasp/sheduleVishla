@@ -16,12 +16,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="assets\bg.png" />
+    <None Remove="assets\bg.jpg" />
     <None Remove="assets\house-floor-svgrepo-com.png" />
     <None Remove="assets\houseWhiteIcon.png" />
+    <None Remove="assets\pageBackground.jpg" />
     <None Remove="assets\plan.png" />
     <None Remove="assets\shedule.png" />
     <None Remove="assets\sunIcon.png" />
+    <None Remove="assets\taskCompleteSound.mp3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,13 +35,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="assets\bg.png">
+    <Resource Include="assets\bg.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="assets\house-floor-svgrepo-com.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="assets\houseWhiteIcon.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="assets\pageBackground.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="assets\plan.png">
@@ -50,6 +55,10 @@
     </Resource>
     <Resource Include="assets\sunIcon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="assets\taskCompleteSound.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Generator>taskCompleteSound.mp3</Generator>
     </Resource>
   </ItemGroup>
 

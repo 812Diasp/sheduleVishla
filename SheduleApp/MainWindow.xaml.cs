@@ -10,6 +10,7 @@ using System.Windows.Media;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using SharpCompress.Common;
 using static SheduleApp.MainWindow;
 
 namespace SheduleApp
@@ -29,6 +30,21 @@ namespace SheduleApp
         public IMongoCollection<UserTasks> _userTasks;
         public User currentUser;
         public List<UserTasks> currentUserTasks;
+
+        public class FileOverwriter
+        {
+            public static void OverwriteWithSingleLine(string filepath, string newLine)
+            {
+                // Проверка существования файла
+                if (!File.Exists(filepath))
+                {
+                    throw new FileNotFoundException("Файл не найден.", filepath);
+                }
+
+                // Запись новой строки в файл
+                File.WriteAllText(filepath, newLine);
+            }
+        }
         public class User
         {
             public ObjectId Id { get; set; }
@@ -76,7 +92,35 @@ namespace SheduleApp
 
 
         }
-
+        public void registrateUser(string filePath)
+        {
+            isLogined = false;
+            MessageBox.Show("Вас нету в базе данных");
+            RegistrationWindow registration = new RegistrationWindow();
+            registration.ShowDialog();
+            User regUser = new User()
+            {
+                Name = lblName,
+                _login = lblLogin,
+                _password = lblPassword,
+                Age = lblAge,
+            };
+            _collectionUser.InsertOne(regUser);
+            try
+            {
+                FileOverwriter.OverwriteWithSingleLine(filePath, regUser.Id.ToString());
+                MessageBox.Show("Вы успешно зарегистрировались");
+            }
+            catch (FileNotFoundException ex)
+            {
+                Console.WriteLine($"Ошибка: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+            }
+            checkLogin();
+        }
         public void checkLogin()
         {
 
@@ -87,17 +131,22 @@ namespace SheduleApp
             if (File.Exists(filePath))
             {
                 // Читаем первую строку из файла
-                ObjectId usrid = ObjectId.Parse(File.ReadLines(filePath).First());
-                var filter = Builders<User>.Filter.Eq("_id", usrid);
-                currentUser = _collectionUser.Find(filter).FirstOrDefault();
+                try {
+                    ObjectId usrid = ObjectId.Parse(File.ReadLines(filePath).First());
+                    var filter = Builders<User>.Filter.Eq("_id", usrid);
+                    currentUser = _collectionUser.Find(filter).FirstOrDefault();
+                } catch {
+                    registrateUser(filePath);
+                }
+               
                 if (currentUser != null)
                 {
                     isLogined = true;
                 }
                 else
                 {
-                    isLogined = false;
-                    MessageBox.Show("Вас нету в базе данных");
+                    registrateUser(filePath);
+
                 }
 
             }
@@ -161,6 +210,22 @@ namespace SheduleApp
             Console.WriteLine("Документ успешно создан.");
         }
 
+        public string lblName;
+        public string lblLogin;
+        public string lblPassword;
+        public int lblAge;
+        //Если пользователь регистируется в окне использем этот метод для получения данных формы
+        public void ReceiveRegistrationData(string name, string login, string password, int age)
+        {
+            // Используйте полученные данные в основном окне
+            // Например, выведите их в Label:
+            lblName = name;
+            lblLogin = login;
+            lblPassword = password;
+            lblAge = age;
+        }
+
+
         private void LoadAndDisplayUsers()
         {
             var users = _collectionUser.Find(new BsonDocument()).ToList(); 
@@ -176,24 +241,8 @@ namespace SheduleApp
 
         private TextBlock СreateTaskLabel(string taskDesc, int? prioritet)
         {
-            string prioSybmol = "";
-            if (prioritet.HasValue)
-            {
-                if (prioritet == 1)
-                {
-                    prioSybmol = " 🎯";
-                }
-                else if(prioritet == 2)
-                {
-                    prioSybmol = " 🔥";
-                }else if(prioritet == 3)
-                {
-                    prioSybmol = " 🔥 🔥";
-                }else
-                {
-                    prioSybmol = " ⚡ ⚡ ⚡";
-                }
-            }
+           
+           
             Color color;
             
             if (prioritet == 1)
@@ -215,7 +264,7 @@ namespace SheduleApp
                 //краснющий
                 color = Color.FromRgb(219, 59, 30);
             }
-            
+
             TextBlock label = new TextBlock
             {
                 Background = new SolidColorBrush(color),
@@ -223,12 +272,12 @@ namespace SheduleApp
                 MinHeight = 60,
                 MaxWidth = 700,
                 Opacity = 0.9,
-                
+
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Padding = new Thickness(10),
                 TextWrapping = TextWrapping.Wrap,
-                Text = taskDesc.ToString() +" " + prioSybmol
+                Text = taskDesc.ToString() + " ",
             };
 
             // Создание стиля для Label
@@ -249,14 +298,6 @@ namespace SheduleApp
                 label.FontWeight = FontWeights.Normal;
             };
 
-
-            // Добавление триггера для изменения цвета текста при наведении курсора
-            //Trigger mouseOverTrigger = new Trigger { Property = TextBlock.IsMouseOverProperty, Value = true };
-            //mouseOverTrigger.Setters.Add(new Setter(TextBlock.ForegroundProperty, Brushes.Red));
-           
-           
-
-           // labelStyle.Triggers.Add(mouseOverTrigger);
 
 
             label.Style = labelStyle;
@@ -289,7 +330,9 @@ namespace SheduleApp
             foreach (UserTasks userTask in currentUserTasks)
             {
                 TextBlock label = СreateTaskLabel(userTask.Description, userTask.prioritet);
-
+                string soundFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tasksound.wav");
+              
+                SoundPlayer soundPlayer = new SoundPlayer(soundFilePath);
 
 
                 // Создание Border с заданными свойствами
@@ -309,7 +352,7 @@ namespace SheduleApp
                     label = null;
                     // Удаление Border из StackPanel
                     stackPanel.Children.Remove(border);
-                    SoundPlayer soundPlayer = new SoundPlayer("D:\\ПРОЕКТЫ C# EXAM\\SheduleApp\\SheduleApp\\taskComplete.wav");
+                    
                     soundPlayer.Play();
                     var filter = Builders<UserTasks>.Filter.Eq(u => u.userId, currentUser.Id);
 
@@ -324,8 +367,7 @@ namespace SheduleApp
                     label = null;
                     // Удаление Border из StackPanel
                     stackPanel.Children.Remove(border);
-                    SoundPlayer soundPlayer = new SoundPlayer("D:\\ПРОЕКТЫ C# EXAM\\SheduleApp\\SheduleApp\\taskComplete.wav");
-                    soundPlayer.Play();
+                    
                     var filter = Builders<UserTasks>.Filter.Eq(u => u.userId, currentUser.Id);
 
                     // Удалить одну задачу, соответствующую фильтру 

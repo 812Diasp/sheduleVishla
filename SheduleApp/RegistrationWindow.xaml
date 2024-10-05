@@ -1,0 +1,24 @@
+﻿<Window x:Class="SheduleApp.RegistrationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SheduleApp"
+        mc:Ignorable="d"
+        Title="RegistrationWindow" Height="350" Width="300">
+    <Grid>
+        <TextBlock Text="Имя:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="txtName" HorizontalAlignment="Left" Margin="60,10,0,0" VerticalAlignment="Top" Width="120"/>
+
+        <TextBlock Text="Логин:" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="txtLogin" HorizontalAlignment="Left" Margin="60,40,0,0" VerticalAlignment="Top" Width="120"/>
+
+        <TextBlock Text="Пароль:" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top"/>
+        <PasswordBox x:Name="txtPassword" HorizontalAlignment="Left" Margin="60,70,0,0" VerticalAlignment="Top" Width="120"/>
+
+        <TextBlock Text="Возраст:" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="txtAge" HorizontalAlignment="Left" Margin="60,100,0,0" VerticalAlignment="Top" Width="120"/>
+
+        <Button Click="RegisterButtonClick" Width="150" Height="40">Зарегистрироваться</Button>
+    </Grid>
+</Window>
