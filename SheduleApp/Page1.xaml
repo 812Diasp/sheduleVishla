@@ -1,0 +1,75 @@
+﻿<Page x:Class="SheduleApp.Page1"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:SheduleApp"
+      mc:Ignorable="d" 
+      MaxWidth="2000"
+      MinWidth="700"
+      MaxHeight="900"
+      MinHeight="500"
+      Title="Пятница 21"
+    >
+    <Page.Background>
+        <ImageBrush ImageSource="assets\bg.png" Stretch="UniformToFill" />
+    </Page.Background>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="50" ></RowDefinition>
+            <RowDefinition Height="30" ></RowDefinition>
+        </Grid.RowDefinitions>
+        <StackPanel Margin="0, 0" Grid.Row="0">
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Image Margin="20,20" Source="assets\houseWhiteIcon.png" Height="30" Width="30" Grid.Column="0"/>
+                <TextBlock Foreground="White"  Margin="0,20" FontWeight="Bold"  Text="Ваши задачи" FontSize="30" Grid.Column="1"/>
+            </Grid>
+        </StackPanel>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden"   Margin="10,80,10,40">
+            <StackPanel x:Name="page1StackPanel" >
+
+            </StackPanel>
+        </ScrollViewer>
+        <Grid Grid.Row="2" Background="White" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Grid.Row="1" Margin="10,5,10,5" Height="53" VerticalAlignment="Top">
+                <Rectangle Width="4" Height="45" Fill="Blue"/>
+            </StackPanel>
+            <TextBox MinWidth="300"  x:Name="TextBoxNewTask" Padding="13" HorizontalAlignment="Left" PreviewKeyDown="TextBoxNewTask_PreviewKeyDown"  BorderThickness="0"  VerticalAlignment="Center"  Text="Новая задача" FontSize="16" Grid.Column="1" Height="50"  MouseLeftButtonDown="TextBoxNewTask_MouseLeftButtonDown" >
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                       
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                
+                                <Setter Property="Background" Value="LightBlue" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
+
+            <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Выбрать приоритет:" Margin="0,0,0,5" FontSize="14" FontWeight="Bold" />
+            <StackPanel Grid.Column="3"  Margin="10">
+                
+                <ComboBox x:Name="myComboBox" Margin="0,0,0,5">
+                    <ComboBoxItem Content="Несрочное"/>
+                    <ComboBoxItem Content="Запланированное"/>
+                    <ComboBoxItem Content="Надо делать"/>
+                    <ComboBoxItem Content="Срочное"/>
+                </ComboBox>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>
