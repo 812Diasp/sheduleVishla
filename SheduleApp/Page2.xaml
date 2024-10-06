@@ -10,20 +10,22 @@ MinWidth="700"
 MaxHeight="900"
 MinHeight="500"
       Title="Page2">
+    <Page.Background>
+        <VisualBrush>
+            <VisualBrush.Visual>
+                <Grid>
+                    <Image Source="assets\class.jpg" Stretch="UniformToFill" />
+                    <Rectangle Fill="Black" Opacity="0.45" />
+                </Grid>
+            </VisualBrush.Visual>
+        </VisualBrush>
+    </Page.Background>
+    <Grid>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden"   Margin="10,80,10,40">
+            <StackPanel x:Name="Lessons">
 
-    <Grid x:Name="Lessons" HorizontalAlignment="Center" VerticalAlignment="Top">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="70"></RowDefinition>
-            <RowDefinition Height="150"></RowDefinition>
-        </Grid.RowDefinitions>
-       
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
+   
 </Page>

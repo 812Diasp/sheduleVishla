@@ -28,8 +28,8 @@ namespace SheduleApp
         {
             InitializeComponent();
 
-        
 
+            TextBoxNewTask.MouseLeftButtonDown += TextBoxNewTask_MouseLeftButtonDown;
         }
         //Выбор поля
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -37,12 +37,7 @@ namespace SheduleApp
            
 
         }
-        //Выбор поля
-        private void TextBoxNewTask_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-           
-         
-        }
+      
 
         private void TextBoxNewTask_PreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -67,12 +62,26 @@ namespace SheduleApp
                         End = DateTime.Now,
                     };
                     
-                    mainWindow._userTasks.InsertOne(task);
+                    mainWindow._USER_TASKS.InsertOne(task);
                     mainWindow.PageInit();
                 }
               //  MessageBox.Show($"Задача создана {}");
             }
 
+        }
+
+        private void TextBoxNewTask_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            TextBoxNewTask.Text = "";
+        }
+
+        private void TextBoxNewTask_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Стираем текст в TextBox
+            TextBoxNewTask.Text = string.Empty;
+
+            // Устанавливаем фокус на TextBox, чтобы можно было начать ввод текста
+            TextBoxNewTask.Focus();
         }
     }
 }

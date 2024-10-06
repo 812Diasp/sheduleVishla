@@ -2,16 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Media;
+
 using System.Reflection;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SharpCompress.Common;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static SheduleApp.MainWindow;
+using Path = System.IO.Path;
 
 namespace SheduleApp
 {
@@ -24,27 +29,18 @@ namespace SheduleApp
 
         public bool isLogined;
 
-        public IMongoDatabase _database;
-        public IMongoCollection<User> _collectionUser;
-        public IMongoCollection<TaskDay> _collectionTasks;
-        public IMongoCollection<UserTasks> _userTasks;
-        public User currentUser;
+        public IMongoDatabase _DATABASE;
+        public IMongoCollection<User> _COLLECTION_USER;
+        public IMongoCollection<TaskDay> _COLLECTION_TASKS;
+        public IMongoCollection<UserTasks> _USER_TASKS;
+        
+
+
+
+        public User currentUser { get; set; } = new User();
         public List<UserTasks> currentUserTasks;
 
-        public class FileOverwriter
-        {
-            public static void OverwriteWithSingleLine(string filepath, string newLine)
-            {
-                // Проверка существования файла
-                if (!File.Exists(filepath))
-                {
-                    throw new FileNotFoundException("Файл не найден.", filepath);
-                }
-
-                // Запись новой строки в файл
-                File.WriteAllText(filepath, newLine);
-            }
-        }
+       
         public class User
         {
             public ObjectId Id { get; set; }
@@ -57,12 +53,7 @@ namespace SheduleApp
         {
             public ObjectId Id { get; set; }
             public string Description { get; set; }
-            /*
-             приоритет 1 = 🎯
-                2 = 🔥
-                3 = 🔥🔥
-                4 = ⚡⚡⚡
-             */
+           
             public ObjectId userId { get; set; }
             public int? prioritet { get; set; }
             public DateTime? Start { get; set; }
@@ -81,18 +72,42 @@ namespace SheduleApp
         {
             InitializeComponent();
 
-           
+          
 
             // подключение бд
             ConnectToMongoDB();
             // просто вывод пользователей из коллекции
             // LoadAndDisplayUsers();
-           
+            
             KeyDown += MainWindow_KeyDown;
-
+            setupUserAvatar();
+            //для получения USER по страницам
+            
 
         }
-        public void registrateUser(string filePath)
+        public void getRandomColorForAvatar()
+        {
+            Color[] colors = new Color[] {
+                Color.FromRgb(255, 0, 0),
+               Color.FromRgb(0, 191, 255),
+                Color.FromRgb(148, 0, 211),
+                Color.FromRgb(165, 82, 42),
+                Color.FromRgb(139, 0, 0),
+                Color.FromRgb(0, 0, 128),
+                Color.FromRgb(128, 0, 128),
+            };
+            Random random = new Random();
+            int randomIndex = random.Next(colors.Length);
+            SolidColorBrush solidColorBrush = new SolidColorBrush(colors[randomIndex]);
+            UserAvatar.Background = solidColorBrush;
+        }
+        public void setupUserAvatar()
+        {
+            //первые две буквы из имени теущего пользователя в аватарке
+            TextInUserAvatar.Text = currentUser.Name.ToString().Substring(0, 2); ;
+            getRandomColorForAvatar();
+        }
+        public void registrateUser(string jsonStringPath)
         {
             isLogined = false;
             MessageBox.Show("Вас нету в базе данных");
@@ -105,11 +120,34 @@ namespace SheduleApp
                 _password = lblPassword,
                 Age = lblAge,
             };
-            _collectionUser.InsertOne(regUser);
+            _COLLECTION_USER.InsertOne(regUser);
             try
             {
-                FileOverwriter.OverwriteWithSingleLine(filePath, regUser.Id.ToString());
+                //обновляем записть в json файле
+                // Новое значение для currentUserID
+                string newCurrentUserID = regUser.Id.ToString();
+
+                // Загружаем JSON файл
+                string jsonString = File.ReadAllText(jsonStringPath);
+
+                // Десериализуем JSON в объект
+                RootObject rootObject = JsonSerializer.Deserialize<RootObject>(jsonString);
+
+                // Изменяем значение currentUserID
+                rootObject.ConnectionStrings.currentUserID = newCurrentUserID;
+
+                // Сериализуем объект обратно в JSON
+                string updatedJsonString = JsonSerializer.Serialize(rootObject, new JsonSerializerOptions { WriteIndented = true });
+
+                // Записываем обновленный JSON в файл
+                File.WriteAllText(jsonStringPath, updatedJsonString);
+
+                MessageBox.Show("currentUserID успешно обновлен.");
+
+
                 MessageBox.Show("Вы успешно зарегистрировались");
+
+
             }
             catch (FileNotFoundException ex)
             {
@@ -124,19 +162,31 @@ namespace SheduleApp
         public void checkLogin()
         {
 
-            // Путь к файлу cfg.txt
-            string filePath = Path.Combine(Environment.CurrentDirectory, "data", "cfg.txt");
-            
+           
+
+            string jsonStringPath = File.ReadAllText(Directory.GetCurrentDirectory()+ "/appsettings.json");
+
+            // Десериализуем JSON в объект
+            RootObject rootObject = JsonSerializer.Deserialize<RootObject>(jsonStringPath);
+
+            // Получаем currentUserID
+            string currentUserID = rootObject.ConnectionStrings.currentUserID;
+
+            // Выводим currentUserID в консоль (или используйте его по вашему назначению)
+          // MessageBox.Show($"currentUserID: {currentUserID}");
+
+
+
             // Проверяем, существует ли файл
-            if (File.Exists(filePath))
+            if (currentUserID.Length >= 4)
             {
                 // Читаем первую строку из файла
                 try {
-                    ObjectId usrid = ObjectId.Parse(File.ReadLines(filePath).First());
+                    ObjectId usrid = ObjectId.Parse(currentUserID);
                     var filter = Builders<User>.Filter.Eq("_id", usrid);
-                    currentUser = _collectionUser.Find(filter).FirstOrDefault();
+                    currentUser = _COLLECTION_USER.Find(filter).FirstOrDefault();
                 } catch {
-                    registrateUser(filePath);
+                    registrateUser(jsonStringPath);
                 }
                
                 if (currentUser != null)
@@ -145,13 +195,27 @@ namespace SheduleApp
                 }
                 else
                 {
-                    registrateUser(filePath);
+                    registrateUser(jsonStringPath);
 
                 }
 
             }
            
         }
+       
+        // Класс для десериализации JSON
+        public class RootObject
+        {
+            public ConnectionStrings ConnectionStrings { get; set; }
+        }
+
+        // Класс для десериализации ConnectionStrings
+        public class ConnectionStrings
+        {
+            public string MongoDB { get; set; }
+            public string currentUserID { get; set; }
+        }
+
         public void ConnectToMongoDB()
         {
             // Подключение к MongoDB и получение всех коллекций 
@@ -166,13 +230,13 @@ namespace SheduleApp
 
             _client = new MongoClient(connectionString);
 
-            _database = _client.GetDatabase("SheduleDB");
-            _collectionUser = _database.GetCollection<User>("User"); // Изменено на GetCollection<User>
-            _collectionTasks = _database.GetCollection<TaskDay>("TaskDay");
+            _DATABASE = _client.GetDatabase("SheduleDB");
+            _COLLECTION_USER = _DATABASE.GetCollection<User>("User"); // Изменено на GetCollection<User>
+            _COLLECTION_TASKS = _DATABASE.GetCollection<TaskDay>("TaskDay");
             //получем пользователя currentUser
             checkLogin();
-            
-            _userTasks = _database.GetCollection<UserTasks>("UserTasks");
+            UserNicknameBox.Text = currentUser.Name;
+            _USER_TASKS = _DATABASE.GetCollection<UserTasks>("UserTasks");
 
 
             // Создание объекта User
@@ -228,7 +292,7 @@ namespace SheduleApp
 
         private void LoadAndDisplayUsers()
         {
-            var users = _collectionUser.Find(new BsonDocument()).ToList(); 
+            var users = _COLLECTION_USER.Find(new BsonDocument()).ToList(); 
 
             string message = "";
             foreach (var user in users)
@@ -252,17 +316,17 @@ namespace SheduleApp
             }else if(prioritet == 2)
             {
                 //слегка красный
-                color = Color.FromRgb(250, 215, 207);
+                color = Color.FromRgb(209, 255, 212);
             }
             else if(prioritet == 3)
             {
-                //оранжевый
-                color = Color.FromRgb(237, 152, 75);
+                //красноватый
+                color = Color.FromRgb(255, 205, 205);
             }
             else
             {
                 //краснющий
-                color = Color.FromRgb(219, 59, 30);
+                color = Color.FromRgb(255, 139, 139);
             }
 
             TextBlock label = new TextBlock
@@ -309,12 +373,12 @@ namespace SheduleApp
             // Создание объекта Page1
             Page1 page = new Page1();
             //обновляем таски
-            _userTasks = _database.GetCollection<UserTasks>("UserTasks");
+            _USER_TASKS = _DATABASE.GetCollection<UserTasks>("UserTasks");
 
             var filter = Builders<UserTasks>.Filter.Eq(u => u.userId, currentUser.Id);
 
             // Получаем коллекцию задач, отфильтрованную по userId
-            currentUserTasks = _userTasks.Find(filter).ToList();
+            currentUserTasks = _USER_TASKS.Find(filter).ToList();
 
             // Сортируем список задач по prioritet в обратном порядке
             currentUserTasks = currentUserTasks.OrderByDescending(t => t.prioritet).ToList();
@@ -340,7 +404,7 @@ namespace SheduleApp
                 {
                     Margin = new Thickness(0, 10, 0, 10),
                     CornerRadius = new CornerRadius(6),
-                    // Padding = new Thickness(2),
+                   
                     BorderThickness = new Thickness(1),
                     BorderBrush = Brushes.Black,
                     Background = label.Background,
@@ -357,7 +421,7 @@ namespace SheduleApp
                     var filter = Builders<UserTasks>.Filter.Eq(u => u.userId, currentUser.Id);
 
                     // Удалить одну задачу, соответствующую фильтру 
-                    _userTasks.DeleteOne(filter);
+                    _USER_TASKS.DeleteOne(filter);
 
                 };
                 //удаление задачи у текущего пользователя
@@ -371,7 +435,7 @@ namespace SheduleApp
                     var filter = Builders<UserTasks>.Filter.Eq(u => u.userId, currentUser.Id);
 
                     // Удалить одну задачу, соответствующую фильтру 
-                    _userTasks.DeleteOne(filter);
+                    _USER_TASKS.DeleteOne(filter);
 
                 };
 
@@ -392,18 +456,12 @@ namespace SheduleApp
         }
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
-            //// Проверяем, была ли нажата клавиша Enter
-            //if (e.Key == Key.Enter)
-            //{
-            //    // Выполняем код, который нужно выполнить при нажатии Enter
-                
-            //    MessageBox.Show("Клавиша Enter была нажата!");
-            //}
+           
         }
 
         private void Para_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            Frame.Navigate(new Page2());
+            Frame.Navigate(new Page2(currentUser, _DATABASE));
         }
     }
 }

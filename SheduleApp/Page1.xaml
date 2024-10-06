@@ -12,7 +12,7 @@
       Title="Пятница 21"
     >
     <Page.Background>
-        <ImageBrush ImageSource="assets\bg.jpg" Stretch="UniformToFill" />
+        <ImageBrush ImageSource="assets\table.jpg" Stretch="UniformToFill" />
     </Page.Background>
     <Grid>
         <Grid.RowDefinitions>
@@ -36,7 +36,7 @@
 
             </StackPanel>
         </ScrollViewer>
-        <Grid Grid.Row="2" Background="White" >
+        <Grid Grid.Row="2" Background="White" Margin="42,0" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*"/>
@@ -48,7 +48,7 @@
             </StackPanel>
             <TextBox HorizontalAlignment="Stretch" Text="Новая задача"   x:Name="TextBoxNewTask" Padding="13"
                      PreviewKeyDown="TextBoxNewTask_PreviewKeyDown"  BorderThickness="0"  VerticalAlignment="Center"
-                     FontSize="16" Grid.Column="1" Height="50"  MouseLeftButtonDown="TextBoxNewTask_MouseLeftButtonDown" Grid.ColumnSpan="3"  >
+                     FontSize="16" Grid.Column="1" Height="50"  Grid.ColumnSpan="3" MouseDown="TextBoxNewTask_MouseDown" MouseLeftButtonDown="TextBoxNewTask_MouseLeftButtonDown"  >
                 <TextBox.Style>
                     <Style TargetType="TextBox">
 

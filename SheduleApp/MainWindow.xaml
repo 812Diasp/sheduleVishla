@@ -8,9 +8,9 @@
         ResizeMode="CanMinimize"
         
         Title="MainWindow" MinWidth="400" MinHeight="500" Height="700" Width="1400" >
-   
+
     <Grid>
-        
+
         <Grid.ColumnDefinitions>
             <!-- колонка, фиксированная ширина -->
             <ColumnDefinition Width="auto"/>
@@ -28,9 +28,30 @@
             </StackPanel.Background>
 
 
+            
 
+            <Grid  x:Name="UserAvatarGrid" Margin="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" x:Name="UserAvatar" Height="69" Width="67" CornerRadius="34.5">
+                    <Border.Background>
+                        <SolidColorBrush x:Name="AvatarColor" Color="Blue" />
+                    </Border.Background>
+                    <TextBlock 
+                        x:Name="TextInUserAvatar"
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Center" 
+                    FontSize="24" 
+                    FontWeight="Bold" 
+                    Foreground="White" 
+                    Text="Дж" /> 
+                </Border>
+                <TextBlock Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="19" x:Name="UserNicknameBox" Text="Пользователь"/>
+            </Grid>
 
-            <TextBlock Foreground="Black" Margin="0,20" FontWeight="Bold" Padding="5" HorizontalAlignment="Center" Text="Планировщик расписания" FontSize="20" Grid.Column="1"/>
+            <TextBlock Foreground="Black" Margin="0,10" FontWeight="Bold" Padding="5" HorizontalAlignment="Center" Text="Планировщик расписания" FontSize="20" Grid.Column="1"/>
             <Grid Margin="10" PreviewMouseDown="TextBlock_Clicked">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -80,6 +101,7 @@
 
 
             </ScrollViewer>
+           
         </StackPanel>
 
         <Frame x:Name="Frame" Width="auto" Height="683" NavigationUIVisibility="Hidden"  VerticalAlignment="Center" Grid.ColumnSpan="2" Margin="270,0,0,0" RenderTransformOrigin="0.5,0.5" >

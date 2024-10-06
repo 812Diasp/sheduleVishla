@@ -16,6 +16,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using static SheduleApp.Page2;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using static SheduleApp.MainWindow;
 
 namespace SheduleApp
 {
@@ -24,27 +27,50 @@ namespace SheduleApp
     /// </summary>
     public partial class Page2 : Page
     {
+       
+        public IMongoCollection<Lesson> _collectionLesson;
+        public User currentUserPage { get; set; } = new User();
+        List<Lesson> filteredLessons = new List<Lesson>();
         public class Lesson()
         {
+            public ObjectId Id { get; set; }
+            public ObjectId UserId { get; set; }
             public string Subject { get; set; }
             public TimeSpan StartTime { get; set; }
             public TimeSpan EndTime { get; set; }
+            public DateTime Date{ get; set; }
             public bool Break { get; set; }
 
         }
-        private List<Lesson> lessons = new List<Lesson>
+        public Page2(User currentUser, IMongoDatabase _DATABASE)
         {
-            new Lesson { Subject = "Математика", StartTime = new TimeSpan(9, 0, 0), EndTime = new TimeSpan(10, 0, 0), Break = false },
-            new Lesson { Subject = "Физика", StartTime = new TimeSpan(10, 20, 0), EndTime = new TimeSpan(11, 50, 0), Break = false },
-            new Lesson { Subject = "История", StartTime = new TimeSpan(12, 0, 0), EndTime = new TimeSpan(12, 30, 0), Break = false },
-            new Lesson { Subject = "Проектная деятельность", StartTime = new TimeSpan(12, 50, 0), EndTime = new TimeSpan(14, 20, 0) },
-            // Добавьте больше пар...
-        };
+            InitializeComponent();
+            //назначаем теущего юзера
+            currentUserPage = currentUser;
+           
+            Lesson l = new Lesson()
+            {
+                UserId = currentUserPage.Id,
+                Subject = "физра",
+                StartTime = new TimeSpan(13, 30, 0),
+                EndTime = new TimeSpan(14, 50, 0),
+                Break = false,
+                Date = DateTime.Now,
+            };
+           
+            _collectionLesson = _DATABASE.GetCollection<Lesson>("UserLessons");
+            _collectionLesson.InsertOne(l);
+            LoadLessons();
+
+
+        }
+        private List<Lesson> lessons = new List<Lesson>
+        {};
         private Grid CreateLessonBlock(Lesson lesson)
         {
             Grid grid = new Grid();
-            grid.Width = 150; // Ширина элемента
-            grid.Height = 150; // Высота элемента
+            grid.Width = 400; // Ширина элемента
+            grid.Height = 80; // Высота элемента
 
             // Определяем столбцы и строки:
             grid.ColumnDefinitions.Add(new ColumnDefinition()); // Один столбец
@@ -53,56 +79,71 @@ namespace SheduleApp
             // Задаем цвет фона:
             grid.Background = new SolidColorBrush(System.Windows.Media.Color.FromRgb(127, 255, 170)); // Светло-зеленый цвет
 
+
+            // Получаем число и месяц занятия
+            int month = lesson.Date.Month;
+            int day = lesson.Date.Day;
             // Создаем TextBlock для названия:
             TextBlock subjectTextBlock = new TextBlock()
             {
-                Text = lesson.Subject,
-                FontSize = 14,
+                Text = lesson.Subject+$" ({day}.{month})",
+                FontSize = 30,
                 TextWrapping = TextWrapping.Wrap,
-                TextAlignment = TextAlignment.Center
+                TextAlignment = TextAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Center,
+                
+                
             };
             Grid.SetColumn(subjectTextBlock, 0);
             Grid.SetRow(subjectTextBlock, 0);
             grid.Children.Add(subjectTextBlock);
-
+           
             // Создаем TextBlock для времени:
             TextBlock timeTextBlock = new TextBlock()
             {
                 Text = lesson.StartTime.ToString(@"hh\:mm") + " - " + lesson.EndTime.ToString(@"hh\:mm"),
-                FontSize = 12,
-                TextAlignment = TextAlignment.Center
+                FontSize = 25,
+                FontStyle = FontStyles.Italic,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                TextAlignment = TextAlignment.Center,
+                 VerticalAlignment = VerticalAlignment.Center,
             };
             Grid.SetColumn(timeTextBlock, 0);
             Grid.SetRow(timeTextBlock, 1);
+            grid.Margin = new Thickness(5);
             grid.Children.Add(timeTextBlock);
+          
 
-            // Возвращаем созданный Grid:
+            //Возвращаем созданный Grid:
             return grid;
         }
-        public Page2()
+
+        public void GetLessonsFromDB()
         {
-            InitializeComponent();
-            LoadLessons();
-
-
+            var filter = Builders<Lesson>.Filter.Eq(u => u.UserId, currentUserPage.Id);
+            // Получение документов, соответствующих фильтру
+            var userLessons = _collectionLesson.Find(filter).ToList();
+            foreach (var userLesson in userLessons)
+            {
+                filteredLessons.Add(userLesson);
+            }
         }
+       
         public void LoadLessons()
         {
 
-            int column = 0; // Начальный номер столбца
+            GetLessonsFromDB();
 
-            foreach (Lesson l in lessons)
+            foreach (Lesson l in filteredLessons)
             {
                 string formatStart = l.StartTime.ToString(@"hh\:mm");
                 string formatEnd = l.EndTime.ToString(@"hh\:mm");
                 Grid newLesson = CreateLessonBlock(l);
-                // Задаем столбец и строку
-                Grid.SetColumn(newLesson, column);
-                Grid.SetRow(newLesson, 1);
+               
                 Lessons.Children.Add(newLesson);
 
-                // Увеличиваем номер столбца для следующей итерации
-                column++;
+              
             }
 
         }
